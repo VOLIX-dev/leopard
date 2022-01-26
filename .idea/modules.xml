@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/leopard.iml" filepath="$PROJECT_DIR$/.idea/leopard.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jaapiecdn/leopard-cli/.idea/leopard-cli.iml" filepath="$PROJECT_DIR$/../jaapiecdn/leopard-cli/.idea/leopard-cli.iml" />
     </modules>
   </component>
 </project>

@@ -2,6 +2,6 @@ package leopard
 
 import "testing"
 
-func TestLog(t *testing.T) {
+func TestRoute(t *testing.T) {
 
 }

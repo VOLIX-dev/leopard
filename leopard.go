@@ -1,12 +1,24 @@
 package leopard
 
 import (
-	"net/http"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 type LeopardApp struct {
+	*Options
+	router *mux.Router
 }
 
-func (l LeopardApp) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func New() (*LeopardApp, error) {
+	app := &LeopardApp{
+		router: mux.NewRouter(),
+	}
 
+	err := godotenv.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }
