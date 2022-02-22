@@ -7,7 +7,8 @@ import (
 
 type LeopardApp struct {
 	*Options
-	router *mux.Router
+	router   *mux.Router
+	settings map[string]SettingValue
 }
 
 func New() (*LeopardApp, error) {

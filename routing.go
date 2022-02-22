@@ -11,30 +11,33 @@ import (
 
 // GET handler register
 func (l *LeopardApp) GET(p string, h func(r *http.Request)) {
-	l.addRoute(http.MethodGet, p, h)
+	l.AddRoute(http.MethodGet, p, h)
 }
 
 // POST register a route with the method POST
 func (l *LeopardApp) POST(p string, h func(r *http.Request)) {
-	l.addRoute(http.MethodPost, p, h)
+	l.AddRoute(http.MethodPost, p, h)
 }
 
 // PUT register a route with the method PUT
 func (l *LeopardApp) PUT(p string, h func(r *http.Request)) {
-	l.addRoute(http.MethodPut, p, h)
+	l.AddRoute(http.MethodPut, p, h)
 }
 
 // DELETE register a route with the method DELETE
 func (l *LeopardApp) DELETE(p string, h func(r *http.Request)) {
-	l.addRoute(http.MethodDelete, p, h)
+	l.AddRoute(http.MethodDelete, p, h)
 }
 
 // PATCH register a reoute with the method PATCH
 func (l *LeopardApp) PATCH(p string, h func(r *http.Request)) {
-	l.addRoute(http.MethodPatch, p, h)
+	l.AddRoute(http.MethodPatch, p, h)
 }
 
-func (l *LeopardApp) addRoute(method string, p string, h func(r *http.Request)) {
+// AddRoute adds a route to the route manager
+// This is mainly called by methods as GET, POST, PUT, DELETE and PATCH
+// However if needed a user could register a custom method name (or one we did not include)
+func (l *LeopardApp) AddRoute(method string, p string, h func(r *http.Request)) {
 	r := l.router.NewRoute()
 
 	r.Methods(method)
@@ -52,6 +55,7 @@ func (l *LeopardApp) StaticDir(p string, root http.FileSystem) {
 	l.router.PathPrefix(pa).Handler(h)
 }
 
+// fileServer creates a file server and returns its handler
 func (l *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 	fsh := http.FileServer(fs)
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +79,7 @@ func (l *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 	return baseHandler
 }
 
+// stripAsset strips path of assets on a file server
 func stripAsset(path string, handler http.Handler, l *LeopardApp) http.Handler {
 	if path == "" {
 		return handler
