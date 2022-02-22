@@ -1,0 +1,5 @@
+# Ignore idea folder for golang users
+/.idea/
+
+# ignore .env
+.env
