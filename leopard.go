@@ -8,6 +8,7 @@ import (
 type LeopardApp struct {
 	*Options
 	router   *mux.Router
+	server   *SimpleServer
 	settings map[string]SettingValue
 }
 
@@ -22,4 +23,10 @@ func New() (*LeopardApp, error) {
 	}
 
 	return app, nil
+}
+
+func (a *LeopardApp) Serve() {
+	a.server = NewSimpleServer()
+	a.server.Handler = a.router
+	a.server.ListenAndServe()
 }

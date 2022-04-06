@@ -6,7 +6,10 @@ type SimpleServer struct {
 	*http.Server
 }
 
-func (s *SimpleServer) Start(h http.Handler) error {
-	s.Handler = h
-	return s.ListenAndServe()
+func NewSimpleServer() *SimpleServer {
+	return &SimpleServer{
+		Server: &http.Server{
+			Addr: ":8080",
+		},
+	}
 }
