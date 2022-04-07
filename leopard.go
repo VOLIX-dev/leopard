@@ -35,10 +35,12 @@ func New() (*LeopardApp, error) {
 	return app, nil
 }
 
-func (a *LeopardApp) Serve() {
-	a.server = NewSimpleServer()
+func (a *LeopardApp) Serve() error {
+	a.server = NewSimpleServer(EnvSettingD("LISTEN", ":8080").GetValue().(string))
 	a.server.Handler = a.router
-	a.server.ListenAndServe()
+	err := a.server.ListenAndServe()
+
+	return err
 }
 
 func (a *LeopardApp) GetRouter() *mux.Router {

@@ -29,5 +29,7 @@ func TestLog(t *testing.T) {
 		panic("AAAAAAAAA")
 	})
 
+	a.StaticDir("/assets/", "./public")
+
 	a.Serve()
 }

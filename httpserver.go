@@ -6,10 +6,10 @@ type SimpleServer struct {
 	*http.Server
 }
 
-func NewSimpleServer() *SimpleServer {
+func NewSimpleServer(addr string) *SimpleServer {
 	return &SimpleServer{
 		Server: &http.Server{
-			Addr: ":8080",
+			Addr: addr,
 		},
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -64,18 +63,17 @@ func (a *LeopardApp) AddRoute(method string, p string, name string, h func(r *Co
 }
 
 // StaticDir register a static directory
-func (a *LeopardApp) StaticDir(p string, root http.FileSystem) {
-	pa := path.Join(p, a.Prefix)
-
-	h := stripAsset(pa, a.fileServer(root))
-	a.router.PathPrefix(pa).Handler(h)
+func (a *LeopardApp) StaticDir(p string, root string) {
+	h := a.fileServer(root, p)
+	a.router.PathPrefix(p).Handler(h)
 }
 
 // fileServer creates a file server and returns its handler
-func (a *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
-	fsh := http.FileServer(fs)
+func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		f, err := fs.Open(path.Clean(r.URL.Path))
+		fmt.Println(path.Clean(strings.TrimPrefix(r.URL.Path, p)))
+		f, err := os.Open(path.Join(rootDir, strings.TrimPrefix(r.URL.Path, p)))
+
 		if os.IsNotExist(err) {
 			w.WriteHeader(404)
 			return
@@ -85,7 +83,9 @@ func (a *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 		maxAge := "31536000"
 		w.Header().Add("ETag", fmt.Sprintf("%x", stat.ModTime().UnixNano()))
 		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%s", maxAge))
-		fsh.ServeHTTP(w, r)
+		w.Header().Add("Content-Length", fmt.Sprintf("%d", stat.Size()))
+
+		http.ServeContent(w, r, f.Name(), stat.ModTime(), f)
 	})
 	//
 	//if a.CompressFiles {
@@ -93,26 +93,4 @@ func (a *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 	//}
 
 	return baseHandler
-}
-
-// stripAsset strips path of assets on a file server
-func stripAsset(path string, handler http.Handler) http.Handler {
-	if path == "" {
-		return handler
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		up := r.URL.Path
-		up = strings.TrimPrefix(up, path)
-		up = strings.TrimSuffix(up, "/")
-
-		u, err := url.Parse(up)
-		if err != nil {
-			w.WriteHeader(404)
-			return
-		}
-
-		r.URL = u
-		handler.ServeHTTP(w, r)
-	})
 }

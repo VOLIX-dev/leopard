@@ -6,6 +6,7 @@ import (
 	"github.com/tyler-sommer/stick"
 	"io"
 	"leopard/templating/drivers"
+	path2 "path"
 	"reflect"
 )
 
@@ -82,6 +83,15 @@ func (t *TwigDriver) Load(path string, router *mux.Router) error {
 
 	t.env.Tests["route"] = func(ctx stick.Context, val stick.Value, args ...stick.Value) bool {
 		return router.GetRoute(stick.CoerceString(val)) != nil
+	}
+
+	t.env.Functions["asset"] = func(ctx stick.Context, args ...stick.Value) stick.Value {
+		if len(args) != 1 {
+			panic("Wrong number of arguments in asset")
+		}
+
+		asset := stick.CoerceString(args[0])
+		return path2.Join("/assets/" + asset)
 	}
 
 	return nil
