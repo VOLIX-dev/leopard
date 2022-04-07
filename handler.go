@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func (l LeopardApp) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (a LeopardApp) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
-	l.router.ServeHTTP(writer, request)
+	a.router.ServeHTTP(writer, request)
 }

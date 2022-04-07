@@ -1,8 +1,7 @@
 package leopard
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 	"testing"
 )
 
@@ -12,8 +11,16 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	a.GET("/kanker", func(c *http.Request) {
-		fmt.Println("hi")
+	a.GET("/kanker/{name}", func(c *Context) {
+		c.WriteStringF("Hello %s", c.GetParam("name"))
+	})
+
+	a.GET("/error", func(c *Context) {
+		c.Error(errors.New("AAAAAAAAA"))
+	})
+
+	a.GET("/panic", func(c *Context) {
+		panic("AAAAAAAAA")
 	})
 
 	a.Serve()

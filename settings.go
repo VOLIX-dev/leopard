@@ -51,6 +51,7 @@ func (e EnvValue) GetDefault() *interface{} {
 	return &e.defaultValue
 }
 
+// EnvSetting get a setting value from the environment
 func EnvSetting(path string) SettingValue {
 	return EnvValue{
 		path:         path,
@@ -58,6 +59,7 @@ func EnvSetting(path string) SettingValue {
 	}
 }
 
+// EnvSettingD get a setting value from the environment with default.
 func EnvSettingD(path string, defaultValue interface{}) SettingValue {
 	return EnvValue{
 		path:         path,
@@ -65,6 +67,6 @@ func EnvSettingD(path string, defaultValue interface{}) SettingValue {
 	}
 }
 
-func (l *LeopardApp) registerRegistry(register SettingsRegister) {
+func (a *LeopardApp) registerRegistry(register SettingsRegister) {
 	register.GetSettings()
 }

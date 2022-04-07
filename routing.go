@@ -10,53 +10,63 @@ import (
 )
 
 // GET handler register
-func (l *LeopardApp) GET(p string, h func(r *http.Request)) {
-	l.AddRoute(http.MethodGet, p, h)
+func (a *LeopardApp) GET(p string, h func(r *Context)) {
+	a.AddRoute(http.MethodGet, p, h)
 }
 
 // POST register a route with the method POST
-func (l *LeopardApp) POST(p string, h func(r *http.Request)) {
-	l.AddRoute(http.MethodPost, p, h)
+func (a *LeopardApp) POST(p string, h func(r *Context)) {
+	a.AddRoute(http.MethodPost, p, h)
 }
 
 // PUT register a route with the method PUT
-func (l *LeopardApp) PUT(p string, h func(r *http.Request)) {
-	l.AddRoute(http.MethodPut, p, h)
+func (a *LeopardApp) PUT(p string, h func(r *Context)) {
+	a.AddRoute(http.MethodPut, p, h)
 }
 
 // DELETE register a route with the method DELETE
-func (l *LeopardApp) DELETE(p string, h func(r *http.Request)) {
-	l.AddRoute(http.MethodDelete, p, h)
+func (a *LeopardApp) DELETE(p string, h func(r *Context)) {
+	a.AddRoute(http.MethodDelete, p, h)
 }
 
 // PATCH register a reoute with the method PATCH
-func (l *LeopardApp) PATCH(p string, h func(r *http.Request)) {
-	l.AddRoute(http.MethodPatch, p, h)
+func (a *LeopardApp) PATCH(p string, h func(r *Context)) {
+	a.AddRoute(http.MethodPatch, p, h)
 }
 
 // AddRoute adds a route to the route manager
 // This is mainly called by methods as GET, POST, PUT, DELETE and PATCH
 // However if needed a user could register a custom method name (or one we did not include)
-func (l *LeopardApp) AddRoute(method string, p string, h func(r *http.Request)) {
-	r := l.router.NewRoute()
+func (a *LeopardApp) AddRoute(method string, p string, h func(r *Context)) {
+	r := a.router.NewRoute()
 
 	r.Methods(method)
 	r.Path(p)
 	r.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h(r)
+		context := NewContext(w, r)
+
+		defer func() {
+			if r := recover(); r != nil {
+				err := context.Error(fmt.Errorf("%v", r))
+				if err != nil {
+					return
+				}
+			}
+		}()
+		h(context)
 	})
 }
 
 // StaticDir register a static directory
-func (l *LeopardApp) StaticDir(p string, root http.FileSystem) {
-	pa := path.Join(p, l.Prefix)
+func (a *LeopardApp) StaticDir(p string, root http.FileSystem) {
+	pa := path.Join(p, a.Prefix)
 
-	h := stripAsset(pa, l.fileServer(root), l)
-	l.router.PathPrefix(pa).Handler(h)
+	h := stripAsset(pa, a.fileServer(root))
+	a.router.PathPrefix(pa).Handler(h)
 }
 
 // fileServer creates a file server and returns its handler
-func (l *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
+func (a *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 	fsh := http.FileServer(fs)
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f, err := fs.Open(path.Clean(r.URL.Path))
@@ -72,7 +82,7 @@ func (l *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 		fsh.ServeHTTP(w, r)
 	})
 	//
-	//if l.CompressFiles {
+	//if a.CompressFiles {
 	//	return handlers.CompressHandler(baseHandler)
 	//}
 
@@ -80,7 +90,7 @@ func (l *LeopardApp) fileServer(fs http.FileSystem) http.Handler {
 }
 
 // stripAsset strips path of assets on a file server
-func stripAsset(path string, handler http.Handler, l *LeopardApp) http.Handler {
+func stripAsset(path string, handler http.Handler) http.Handler {
 	if path == "" {
 		return handler
 	}
