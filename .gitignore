@@ -3,3 +3,6 @@
 
 # ignore .env
 .env
+
+# Ignore testing files
+./templates/
