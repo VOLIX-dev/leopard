@@ -2,6 +2,7 @@ package leopard
 
 import (
 	"errors"
+	"leopard/templating/drivers"
 	"testing"
 )
 
@@ -11,15 +12,20 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	a.GET("/kanker/{name}", func(c *Context) {
-		c.WriteStringF("Hello %s", c.GetParam("name"))
+	a.GET("/kanker/{name}", "test", func(c *Context) {
+		err := c.RenderTemplate("test.twig", map[string]drivers.Value{
+			"test": "a",
+		})
+		if err != nil {
+			panic(err)
+		}
 	})
 
-	a.GET("/error", func(c *Context) {
+	a.GET("/error", "test2", func(c *Context) {
 		c.Error(errors.New("AAAAAAAAA"))
 	})
 
-	a.GET("/panic", func(c *Context) {
+	a.GET("/panic", "test2", func(c *Context) {
 		panic("AAAAAAAAA")
 	})
 

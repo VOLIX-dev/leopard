@@ -35,7 +35,7 @@ type EnvValue struct {
 func (e EnvValue) GetValue() interface{} {
 	envVal := os.Getenv(e.path)
 	if envVal == "" {
-		return e.GetDefault()
+		return *e.GetDefault()
 	}
 	return envVal
 }

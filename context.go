@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"leopard/templating/drivers"
 	"net/http"
 	"runtime/debug"
 )
@@ -12,13 +13,15 @@ type Context struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
 	vars           map[string]string
+	a              *LeopardApp
 }
 
-func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+func NewContext(w http.ResponseWriter, r *http.Request, a *LeopardApp) *Context {
 	return &Context{
 		request:        r,
 		responseWriter: w,
 		vars:           mux.Vars(r),
+		a:              a,
 	}
 }
 
@@ -223,4 +226,10 @@ func (c *Context) SetResponseCookie(cookies ...*http.Cookie) {
 	for _, cookie := range cookies {
 		http.SetCookie(c.ResponseWriter(), cookie)
 	}
+}
+
+// Templates
+
+func (c *Context) RenderTemplate(template string, data map[string]drivers.Value) error {
+	return c.a.TemplateDriver.RenderTemplate(template, c.responseWriter, data)
 }
