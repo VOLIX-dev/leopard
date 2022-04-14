@@ -3,8 +3,8 @@ package leopard
 import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"leopard/templating"
-	"leopard/templating/drivers"
+	"github.com/volix-dev/leopard/templating"
+	"github.com/volix-dev/leopard/templating/drivers"
 )
 
 type LeopardApp struct {

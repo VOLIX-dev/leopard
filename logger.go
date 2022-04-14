@@ -1,6 +1,6 @@
 package leopard
 
-import "leopard/defaultlogger"
+import "github.com/volix-dev/leopard/defaultlogger"
 
 var Logger LoggerInterface
 

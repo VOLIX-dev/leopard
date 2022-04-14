@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"leopard/templating/drivers"
+	"github.com/volix-dev/leopard/templating/drivers"
 	"net/http"
 	"runtime/debug"
 )

@@ -1,7 +1,7 @@
 package templating
 
 import (
-	"leopard/templating/drivers/twigDriver"
+	"github.com/volix-dev/leopard/templating/drivers/twigDriver"
 )
 
 var TwigCreator = twigDriver.NewTwigDriver
