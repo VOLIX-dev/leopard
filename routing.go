@@ -36,6 +36,18 @@ func (a *LeopardApp) PATCH(p string, name string, h func(r *Context), middleware
 	a.AddRoute(http.MethodPatch, p, name, h)
 }
 
+func (a *LeopardApp) Group(p string, name string, groupHandler func(group RouteGroup), middleware ...MiddlewareFunc) RouteGroup {
+	group := RouteGroup{
+		prefix:     p,
+		namePrefix: name,
+		app:        a,
+		middleware: middleware,
+	}
+	groupHandler(group)
+
+	return group
+}
+
 // AddRoute adds a route to the route manager
 // This is mainly called by methods as GET, POST, PUT, DELETE and PATCH
 // However if needed a user could register a custom method name (or one we did not include)
@@ -50,13 +62,13 @@ func (a *LeopardApp) AddRoute(method string, p string, name string, h func(r *Co
 		context := NewContext(w, r, a)
 
 		defer func() {
-			//if r := recover(); r != nil {
-			//	err := context.Error(fmt.Errorf("%v", r))
-			//
-			//	if err != nil {
-			//		return
-			//	}
-			//}
+			if r := recover(); r != nil {
+				err := context.Error(fmt.Errorf("%v", r))
+
+				if err != nil {
+					return
+				}
+			}
 		}()
 		h(context)
 	})
@@ -93,4 +105,78 @@ func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 	//}
 
 	return baseHandler
+}
+
+type RouteGroup struct {
+	prefix     string
+	namePrefix string
+	middleware []MiddlewareFunc
+	app        *LeopardApp
+}
+
+func (r RouteGroup) GET(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+	r.app.AddRoute(
+		http.MethodGet,
+		path.Join(r.prefix, p),
+		r.namePrefix+"."+name,
+		h,
+		append(r.middleware, middleware...)...,
+	)
+}
+
+// POST register a route with the method POST
+func (r RouteGroup) POST(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+	r.app.AddRoute(
+		http.MethodPost,
+		path.Join(r.prefix, p),
+		r.namePrefix+"."+name,
+		h,
+		append(r.middleware, middleware...)...,
+	)
+}
+
+// PUT register a route with the method PUT
+func (r RouteGroup) PUT(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+	r.app.AddRoute(
+		http.MethodPut,
+		path.Join(r.prefix, p),
+		r.namePrefix+"."+name,
+		h,
+		append(r.middleware, middleware...)...,
+	)
+}
+
+// DELETE register a route with the method DELETE
+func (r RouteGroup) DELETE(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+	r.app.AddRoute(
+		http.MethodDelete,
+		path.Join(r.prefix, p),
+		r.namePrefix+"."+name,
+		h,
+		append(r.middleware, middleware...)...,
+	)
+}
+
+// PATCH register a route with the method PATCH
+func (r RouteGroup) PATCH(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+	r.app.AddRoute(
+		http.MethodPatch,
+		path.Join(r.prefix, p),
+		r.namePrefix+"."+name,
+		h,
+		append(r.middleware, middleware...)...,
+	)
+}
+
+// Group creates a new RouteGroup with a prefix
+func (r RouteGroup) Group(prefix string, name string, groupHandler func(group RouteGroup), middleware ...MiddlewareFunc) RouteGroup {
+	group := RouteGroup{
+		prefix:     path.Join(r.prefix, prefix),
+		namePrefix: r.namePrefix + "." + name,
+		middleware: append(r.middleware, middleware...),
+		app:        r.app,
+	}
+	groupHandler(group)
+
+	return group
 }
