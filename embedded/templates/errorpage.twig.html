@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+          name="viewport">
+    <meta content="ie=edge" http-equiv="X-UA-Compatible">
+    <title>OOPS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        let stackJson = "{{ stackTrace }}";
+
+        let stack = JSON.parse(stackJson);
+    </script>
+    <style>
+        * {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            width: 100vw;
+            background-color: #ff4b4b;
+            color: white;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <p class="m-2 text-4xl">An error occurred!</p>
+    </div>
+</body>
+</html>

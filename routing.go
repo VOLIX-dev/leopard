@@ -2,41 +2,41 @@ package leopard
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 )
 
-type MiddlewareFunc mux.MiddlewareFunc
+type MiddlewareFunc func(context ContextInterface)
 
 // GET handler register
-func (a *LeopardApp) GET(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	a.AddRoute(http.MethodGet, p, name, h)
+func (a *LeopardApp) GET(p string, h func(r ContextInterface), extras ...any) {
+	a.AddRoute(http.MethodGet, p, h, extras...)
 }
 
 // POST register a route with the method POST
-func (a *LeopardApp) POST(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	a.AddRoute(http.MethodPost, p, name, h)
+func (a *LeopardApp) POST(p string, h func(r ContextInterface), extras ...any) {
+	a.AddRoute(http.MethodPost, p, h, extras...)
 }
 
 // PUT register a route with the method PUT
-func (a *LeopardApp) PUT(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	a.AddRoute(http.MethodPut, p, name, h)
+func (a *LeopardApp) PUT(p string, h func(r ContextInterface), extras ...any) {
+	a.AddRoute(http.MethodPut, p, h, extras)
 }
 
 // DELETE register a route with the method DELETE
-func (a *LeopardApp) DELETE(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	a.AddRoute(http.MethodDelete, p, name, h)
+func (a *LeopardApp) DELETE(p string, h func(r ContextInterface), extras ...any) {
+	a.AddRoute(http.MethodDelete, p, h, extras)
 }
 
 // PATCH register a reoute with the method PATCH
-func (a *LeopardApp) PATCH(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	a.AddRoute(http.MethodPatch, p, name, h)
+func (a *LeopardApp) PATCH(p string, h func(r ContextInterface), extras ...any) {
+	a.AddRoute(http.MethodPatch, p, h, extras)
 }
 
-func (a *LeopardApp) Group(p string, name string, groupHandler func(group RouteGroup), middleware ...MiddlewareFunc) RouteGroup {
+func (a *LeopardApp) Group(p string, groupHandler func(group RouteGroup), extras ...any) RouteGroup {
+	name, middleware := parseExtras(extras)
 	group := RouteGroup{
 		prefix:     p,
 		namePrefix: name,
@@ -51,15 +51,26 @@ func (a *LeopardApp) Group(p string, name string, groupHandler func(group RouteG
 // AddRoute adds a route to the route manager
 // This is mainly called by methods as GET, POST, PUT, DELETE and PATCH
 // However if needed a user could register a custom method name (or one we did not include)
-func (a *LeopardApp) AddRoute(method string, p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
+func (a *LeopardApp) AddRoute(method string, p string, h func(r ContextInterface), extras ...any) {
+	name, middleware := parseExtras(extras)
+
+	a.addRoute(method, p, h, name, middleware)
+}
+
+func (a *LeopardApp) addRoute(method string, p string, h func(r ContextInterface), name *string, middleware []MiddlewareFunc) {
 	r := a.router.NewRoute()
 
 	r.Methods(method)
 	r.Path(p)
-	r.Name(name)
-	r.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		context := NewContext(w, r, a)
+	fmt.Println(r.GetPathTemplate())
+
+	if name != nil {
+		r.Name(*name)
+	}
+
+	r.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		context := a.ContextCreator(r, w, a)
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -70,6 +81,15 @@ func (a *LeopardApp) AddRoute(method string, p string, name string, h func(r *Co
 				}
 			}
 		}()
+
+		for _, m := range middleware {
+			m(context)
+
+			if context.Aborted() {
+				return
+			}
+		}
+
 		h(context)
 	})
 }
@@ -109,74 +129,116 @@ func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 
 type RouteGroup struct {
 	prefix     string
-	namePrefix string
+	namePrefix *string
 	middleware []MiddlewareFunc
 	app        *LeopardApp
 }
 
-func (r RouteGroup) GET(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	r.app.AddRoute(
+func (r RouteGroup) GET(p string, h func(r ContextInterface), extras ...any) {
+	r.addRoute(
 		http.MethodGet,
-		path.Join(r.prefix, p),
-		r.namePrefix+"."+name,
+		p,
 		h,
-		append(r.middleware, middleware...)...,
+		extras...,
 	)
 }
 
 // POST register a route with the method POST
-func (r RouteGroup) POST(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	r.app.AddRoute(
+func (r RouteGroup) POST(p string, h func(r ContextInterface), extras ...any) {
+	r.addRoute(
 		http.MethodPost,
-		path.Join(r.prefix, p),
-		r.namePrefix+"."+name,
+		p,
 		h,
-		append(r.middleware, middleware...)...,
+		extras...,
 	)
 }
 
 // PUT register a route with the method PUT
-func (r RouteGroup) PUT(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	r.app.AddRoute(
+func (r RouteGroup) PUT(p string, h func(r ContextInterface), extras ...any) {
+	r.addRoute(
 		http.MethodPut,
-		path.Join(r.prefix, p),
-		r.namePrefix+"."+name,
+		p,
 		h,
-		append(r.middleware, middleware...)...,
+		extras...,
 	)
 }
 
 // DELETE register a route with the method DELETE
-func (r RouteGroup) DELETE(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	r.app.AddRoute(
+func (r RouteGroup) DELETE(p string, h func(r ContextInterface), extras ...any) {
+	r.addRoute(
 		http.MethodDelete,
-		path.Join(r.prefix, p),
-		r.namePrefix+"."+name,
+		p,
 		h,
-		append(r.middleware, middleware...)...,
+		extras...,
 	)
 }
 
 // PATCH register a route with the method PATCH
-func (r RouteGroup) PATCH(p string, name string, h func(r *Context), middleware ...MiddlewareFunc) {
-	r.app.AddRoute(
+func (r RouteGroup) PATCH(p string, h func(r ContextInterface), extras ...any) {
+	r.addRoute(
 		http.MethodPatch,
-		path.Join(r.prefix, p),
-		r.namePrefix+"."+name,
+		p,
 		h,
-		append(r.middleware, middleware...)...,
+		extras...,
 	)
 }
 
 // Group creates a new RouteGroup with a prefix
-func (r RouteGroup) Group(prefix string, name string, groupHandler func(group RouteGroup), middleware ...MiddlewareFunc) RouteGroup {
+func (r RouteGroup) Group(prefix string, groupHandler func(group RouteGroup), extras ...any) RouteGroup {
+	name, middleware := parseExtras(extras)
+
 	group := RouteGroup{
 		prefix:     path.Join(r.prefix, prefix),
-		namePrefix: r.namePrefix + "." + name,
-		middleware: append(r.middleware, middleware...),
+		namePrefix: r.addNamePrefix(name),
 		app:        r.app,
+		middleware: middleware,
 	}
 	groupHandler(group)
 
 	return group
+}
+
+func (r RouteGroup) addRoute(method string, p string, h func(r ContextInterface), extras ...any) {
+	name, middleware := parseExtras(extras)
+
+	r.app.addRoute(
+		method,
+		path.Join(r.prefix, p),
+		h,
+		r.addNamePrefix(name),
+		append(r.middleware, middleware...),
+	)
+}
+
+func (r RouteGroup) addNamePrefix(name *string) *string {
+	if name == nil {
+		return nil
+	}
+
+	if r.namePrefix == nil {
+		return name
+	}
+
+	temp := *r.namePrefix + "." + *name
+	return &temp
+}
+
+func parseExtras(extras []any) (name *string, middleware []MiddlewareFunc) {
+	for _, e := range extras {
+		switch e.(type) {
+		case string:
+			temp := e.(string)
+			name = &temp
+			break
+
+		case MiddlewareFunc:
+			middleware = append(middleware, e.(MiddlewareFunc))
+			break
+
+		case []MiddlewareFunc:
+			middleware = append(middleware, e.([]MiddlewareFunc)...)
+			break
+		}
+	}
+	return
 }

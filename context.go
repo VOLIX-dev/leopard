@@ -4,16 +4,64 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/volix-dev/leopard/helpers"
 	"github.com/volix-dev/leopard/templating/drivers"
+	"io/ioutil"
 	"net/http"
 	"runtime/debug"
 )
+
+type ContextInterface interface {
+	Request() *http.Request
+	ResponseWriter() http.ResponseWriter
+	App() *LeopardApp
+
+	JsonStatus(status int, data interface{}) error
+	Json(data interface{}) error
+	Error(err error) error
+	Status(status int)
+	Ok()
+	NotFound()
+	Unauthorized()
+	BadRequest()
+	Redirect(url string)
+	Write(data []byte) (int, error)
+	WriteString(data string) (int, error)
+	WriteStringF(format string, args ...interface{}) (int, error)
+	WriteJson(data interface{}) error
+	Read(data []byte) (int, error)
+	ReadAll() ([]byte, error)
+	ReadString() (string, error)
+	ReadJson(data interface{}) error
+	ReadForm() map[string][]string
+	ReadFormValue(key string) string
+	SetHeader(key, value string)
+	SetHeaders(headers map[string][]string)
+	GetHeader(key string) string
+	GetHeaders() map[string][]string
+	GetParam(key string) string
+	HasParam(key string) bool
+	GetParams() map[string]string
+	GetQuery(key string) string
+	Queries() map[string][]string
+	GetCookie(key string) (*http.Cookie, error)
+	SetCookie(key string, value string, maxAge int, path string, domain string, secure bool, httpOnly bool)
+	SetResponseCookie(cookies ...*http.Cookie)
+	RenderTemplate(template string, data map[string]drivers.Value) error
+
+	// Used for middleware only
+
+	Aborted() bool
+	Abort()
+}
 
 type Context struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
 	vars           map[string]string
 	a              *LeopardApp
+
+	abort bool
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, a *LeopardApp) *Context {
@@ -35,6 +83,11 @@ func (c *Context) ResponseWriter() http.ResponseWriter {
 	return c.responseWriter
 }
 
+// App returns the current LeopardApp
+func (c *Context) App() *LeopardApp {
+	return c.a
+}
+
 // JsonStatus returns the status code and the data marshaled to json.
 func (c *Context) JsonStatus(status int, data interface{}) error {
 	c.responseWriter.Header().Set("Content-Type", "application/json")
@@ -54,7 +107,7 @@ func (c *Context) Json(data interface{}) error {
 func (c *Context) Error(err error) error {
 	return c.JsonStatus(http.StatusInternalServerError, map[string]interface{}{
 		"message":    err.Error(),
-		"stacktrace": string(debug.Stack()),
+		"stacktrace": helpers.SerializeStack(debug.Stack()),
 	})
 }
 
@@ -111,20 +164,20 @@ func (c *Context) WriteJson(data interface{}) error {
 }
 
 // Reads
+func (c *Context) Read(data []byte) (int, error) {
+	return c.request.Body.Read(data)
+}
 
-// Read reads the request body to a byte array
-func (c *Context) Read() ([]byte, int, error) {
-	data := make([]byte, c.request.ContentLength)
-	i, err := c.request.Body.Read(data)
-
-	return data, i, err
+// ReadAll reads the request body to a byte array
+func (c *Context) ReadAll() ([]byte, error) {
+	return ioutil.ReadAll(c.request.Body)
 }
 
 // ReadString reads the request body as a string
-func (c *Context) ReadString() (string, int, error) {
-	data, i, err := c.Read()
+func (c *Context) ReadString() (string, error) {
+	data, err := c.ReadAll()
 
-	return string(data), i, err
+	return string(data), err
 }
 
 // ReadJson unmarshal the request body to the provided interface.
@@ -232,4 +285,16 @@ func (c *Context) SetResponseCookie(cookies ...*http.Cookie) {
 
 func (c *Context) RenderTemplate(template string, data map[string]drivers.Value) error {
 	return c.a.TemplateDriver.RenderTemplate(template, c.responseWriter, data)
+}
+
+// For middleware
+
+// Abort stops the current middleware chain.
+func (c *Context) Abort() {
+	c.abort = true
+}
+
+// Aborted returns true if the context was aborted.
+func (c *Context) Aborted() bool {
+	return c.abort
 }
