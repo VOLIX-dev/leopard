@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -103,9 +104,13 @@ func (a *LeopardApp) StaticDir(p string, root string) {
 // fileServer creates a file server and returns its handler
 func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cleanedPath := regexp.MustCompile("../|~").ReplaceAllString(
+			strings.TrimPrefix(r.URL.Path, p),
+			"",
+		)
 		f, err := os.Open(path.Join(rootDir,
 			strings.ReplaceAll(
-				strings.TrimPrefix(r.URL.Path, p),
+				cleanedPath,
 				"../",
 				"",
 			)),
