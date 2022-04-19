@@ -103,8 +103,13 @@ func (a *LeopardApp) StaticDir(p string, root string) {
 // fileServer creates a file server and returns its handler
 func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(path.Clean(strings.TrimPrefix(r.URL.Path, p)))
-		f, err := os.Open(path.Join(rootDir, strings.TrimPrefix(r.URL.Path, p)))
+		f, err := os.Open(path.Join(rootDir,
+			strings.ReplaceAll(
+				strings.TrimPrefix(r.URL.Path, p),
+				"../",
+				"",
+			)),
+		)
 
 		if os.IsNotExist(err) {
 			w.WriteHeader(404)
