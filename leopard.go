@@ -12,6 +12,8 @@ import (
 	"strconv"
 )
 
+var Instance *LeopardApp
+
 type LeopardApp struct {
 	*Options
 	router   *mux.Router
@@ -37,6 +39,8 @@ func New() (*LeopardApp, error) {
 			}
 		},
 	}
+
+	Instance = app
 
 	err := godotenv.Load()
 

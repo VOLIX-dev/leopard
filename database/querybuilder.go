@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	. "github.com/volix-dev/leopard/helpers"
 	"strings"
 )
 
@@ -140,7 +141,7 @@ func (qb *QueryBuilder) buildWheres() (string, []interface{}) {
 	for i, where := range qb.wheres {
 		if i > 0 {
 			wheres.WriteString(" ")
-			wheres.WriteString(ternary(where.or, "OR ", "AND "))
+			wheres.WriteString(Ternary(where.or, "OR ", "AND "))
 		}
 
 		wheres.WriteString(where.field)
@@ -168,14 +169,6 @@ func (qb *QueryBuilder) buildGroupBy() (string, []interface{}) {
 	}
 
 	return "GROUP BY ?", []interface{}{*qb.groupBy}
-}
-
-func ternary(condition bool, trueVal string, falseVal string) string {
-	if condition {
-		return trueVal
-	}
-
-	return falseVal
 }
 
 func NewQueryBuilder(table string) *QueryBuilder {
