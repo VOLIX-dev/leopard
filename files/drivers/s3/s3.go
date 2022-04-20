@@ -37,6 +37,7 @@ func init() {
 				Endpoint:    conf.Endpoint,
 				DisableSSL:  conf.DisableSSL,
 			})
+
 			return &S3Driver{
 				client: client,
 				bucket: conf.Bucket,
@@ -261,6 +262,7 @@ func (s *S3File) Read(p []byte) (n int, err error) {
 		}
 	}
 	read, err := s.incoming.Body.Read(p)
+
 	return read, err
 }
 
@@ -345,6 +347,7 @@ func getPointingString(s *string) string {
 	if s == nil {
 		return ""
 	}
+
 	return *s
 }
 
@@ -352,6 +355,7 @@ func getPointingNum[N int | int8 | int16 | int32 | int64 | float32 | float64](i 
 	if i == nil {
 		return 0
 	}
+
 	return *i
 }
 

@@ -118,6 +118,7 @@ func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 
 		if os.IsNotExist(err) {
 			w.WriteHeader(404)
+
 			return
 		}
 
@@ -129,10 +130,6 @@ func (a *LeopardApp) fileServer(rootDir string, p string) http.Handler {
 
 		http.ServeContent(w, r, f.Name(), stat.ModTime(), f)
 	})
-	//
-	//if a.CompressFiles {
-	//	return handlers.CompressHandler(baseHandler)
-	//}
 
 	return baseHandler
 }
@@ -230,6 +227,7 @@ func (r RouteGroup) addNamePrefix(name *string) *string {
 	}
 
 	temp := *r.namePrefix + "." + *name
+
 	return &temp
 }
 

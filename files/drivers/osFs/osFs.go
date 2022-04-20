@@ -85,6 +85,7 @@ func (o *OsFs) ReadFileStream(path string) (io.ReadCloser, error) {
 
 func (o *OsFs) WriteFileStream(path string, data io.Reader) error {
 	create, err := os.Create(o.addRoot(path))
+
 	if err != nil {
 		return err
 	}
@@ -94,6 +95,7 @@ func (o *OsFs) WriteFileStream(path string, data io.Reader) error {
 	}(create)
 
 	_, err = io.Copy(create, data)
+
 	return err
 }
 
@@ -103,6 +105,7 @@ func (o *OsFs) RemoveFile(path string) error {
 
 func (o *OsFs) FileSize(path string) (int64, error) {
 	info, err := os.Stat(o.addRoot(path))
+
 	if err != nil {
 		return 0, err
 	}
@@ -112,6 +115,7 @@ func (o *OsFs) FileSize(path string) (int64, error) {
 
 func (o *OsFs) FileModTime(path string) (int64, error) {
 	info, err := os.Stat(o.addRoot(path))
+
 	if err != nil {
 		return 0, err
 	}

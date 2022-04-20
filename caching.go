@@ -26,13 +26,16 @@ func newCaching(driver string, config any) (*Caching, error) {
 // Get retrieves data from the cache.
 func (c Caching) Get(key string, target any) (bool, error) {
 	get, err := c.Driver.Get("cache:"+key, target)
+
 	if err != nil {
 		return false, err
 	}
+
 	if get {
 		fmt.Println(target)
 
 	}
+
 	return get, nil
 }
 

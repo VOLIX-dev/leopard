@@ -69,8 +69,10 @@ func Register(name string, driverCreator func(config any) (Driver, error)) {
 // Get a driver.
 func Get(name string, config any) (Driver, error) {
 	driverCreator, ok := registry[name]
+
 	if !ok {
 		return nil, errors.New("driver not found")
 	}
+
 	return driverCreator(config)
 }

@@ -40,6 +40,7 @@ func newRedisDriver(config RedisSettings) (*RedisDriver, error) {
 		Password: config.Password,
 		DB:       config.Database,
 	})
+
 	return &RedisDriver{
 		client,
 	}, nil
@@ -47,15 +48,17 @@ func newRedisDriver(config RedisSettings) (*RedisDriver, error) {
 
 func (r *RedisDriver) Get(key string, target any) (bool, error) {
 	if _, stru := target.(*struct{}); stru {
-		_, marshaler := target.(encoding.BinaryUnmarshaler)
-		if !marshaler {
+		_, marshaller := target.(encoding.BinaryUnmarshaler)
+		if !marshaller {
 
 			data, err := r.client.Get(context.TODO(), key).Bytes()
+
 			if err != nil {
 				return false, err
 			}
 
 			err = json.Unmarshal(data, target)
+
 			if err != nil {
 				return false, err
 			}

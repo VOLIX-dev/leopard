@@ -48,6 +48,7 @@ func New() (*LeopardApp, error) {
 		return nil, err
 	}
 
+	// TODO: move this to caching.go
 	driverName := EnvSettingD("CACHE_DRIVER", "memory").GetValue().(string)
 
 	switch driverName {
@@ -90,14 +91,17 @@ func New() (*LeopardApp, error) {
 	}
 
 	err = app.Cache.open()
+
 	if err != nil {
 		return nil, err
 	}
 
 	fileDriver, err := getFileDriver()
+
 	if err != nil {
 		return nil, err
 	}
+
 	app.FileDriver = fileDriver
 
 	return app, nil

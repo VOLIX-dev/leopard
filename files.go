@@ -15,9 +15,8 @@ func getFileDriver() (files.Driver, error) {
 
 	switch driverName {
 	case "local":
-		fmt.Println("local2")
 		return files.Get("os", EnvSettingD("FILE_LOCAL_PATH", "./store").GetValue().(string))
 	}
-	fmt.Println("local3")
+
 	return nil, errors.New("driver not found")
 }
