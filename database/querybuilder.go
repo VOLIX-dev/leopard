@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -71,10 +72,18 @@ func (qb *QueryBuilder) GroupBy(column string) *QueryBuilder {
 
 // todo: Change this into different drivers
 
-func (qb *QueryBuilder) Build() (string, []interface{}) {
+func (qb *QueryBuilder) Build() (string, []interface{}, error) {
+	switch qb.operation {
+	case Select:
+		return qb.buildSelect()
+	}
+	return "", nil, errors.New("invalid operation")
+}
+
+func (qb *QueryBuilder) buildSelect() (string, []interface{}, error) {
 	builder := strings.Builder{}
 
-	builder.WriteString(qb.operation.String() + " ")
+	builder.WriteString("SELECT ")
 
 	if len(qb.selects) > 0 {
 		builder.WriteString(strings.Join(qb.selects, ", "))
@@ -121,7 +130,7 @@ func (qb *QueryBuilder) Build() (string, []interface{}) {
 		groupByValues = values
 	}
 
-	return builder.String(), append(whereValues, append(limitValues, groupByValues...)...)
+	return builder.String(), append(whereValues, append(limitValues, groupByValues...)...), nil
 }
 
 func (qb *QueryBuilder) buildWheres() (string, []interface{}) {
