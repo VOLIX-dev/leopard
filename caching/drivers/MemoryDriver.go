@@ -51,7 +51,7 @@ func (m *MemoryDriver) Get(key string, target any) (bool, error) {
 		case *string:
 			*t = value.(string)
 		}
-		fmt.Println(target)
+
 		return true, nil
 	}
 
@@ -63,6 +63,7 @@ func (m *MemoryDriver) Set(key string, value any) error {
 	defer m.lock.Unlock()
 
 	m.cache[key] = value
+
 	return nil
 }
 
@@ -78,6 +79,7 @@ func (m *MemoryDriver) Delete(key string) error {
 	defer m.lock.Unlock()
 
 	delete(m.cache, key)
+
 	return nil
 }
 

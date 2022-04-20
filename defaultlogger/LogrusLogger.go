@@ -8,6 +8,7 @@ type LogrusLogger struct {
 func New() *LogrusLogger {
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	logrus.SetLevel(logrus.DebugLevel)
+
 	return &LogrusLogger{}
 }
 
