@@ -14,8 +14,7 @@ A go web framework
  - [ ] Making Leopard more customizable
     - [ ] Custom error handling
     - [ ] ...
- - [ ] Creating a CLI
-    - [ ] ...
+ - [x] Creating a CLI
  - [ ] Create docs
  
 ## Usage
