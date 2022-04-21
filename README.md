@@ -21,7 +21,7 @@ A go web framework
 ## Usage
 
 ### Github template
-You can create a project from the github template (leopard-base)[https://github.com/VOLIX-dev/leopard-base]
+You can create a project from the github template [leopard-base](https://github.com/VOLIX-dev/leopard-base)
 
 ### CLI
-You can also create a project with the cli tool instructions found (here)[https://github.com/VOLIX-dev/leopard-cli]
+You can also create a project with the cli tool instructions found [here](https://github.com/VOLIX-dev/leopard-cli)
