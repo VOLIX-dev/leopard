@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/tyler-sommer/stick"
+	"github.com/volix-dev/leopard"
 	"github.com/volix-dev/leopard/templating/drivers"
 	"io"
 	path2 "path"
@@ -91,7 +92,9 @@ func (t *TwigDriver) Load(path string, router *mux.Router) error {
 		}
 
 		asset := stick.CoerceString(args[0])
-		return path2.Join("/assets/" + asset)
+		return path2.Join(
+			leopard.EnvSettingD("ASSETS_PATH", "/assets/").GetValue().(string) + asset,
+		)
 	}
 
 	return nil
