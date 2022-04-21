@@ -34,6 +34,7 @@ func New() (*LeopardApp, error) {
 				request:        r,
 				responseWriter: w,
 				a:              a,
+				vars:           mux.Vars(r),
 			}
 		},
 	}
