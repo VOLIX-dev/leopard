@@ -19,23 +19,9 @@ A go web framework
  - [ ] Create docs
  
 ## Usage
-You can simply create a new leopard project by adding this to your main function:
 
-```go
-func main() {
-    app, err := leopard.New()
-    
-    if err != nil {
-        panic(err)
-    }
-    
-    // Add everything here
-    
-    err = app.Serve()
-    
-    if err != nil {
-        panic(err)
-    }
-}
-```
-Creating a project will later be simplified a lot with the CLI.  
+### Github template
+You can create a project from the github template (leopard-base)[https://github.com/VOLIX-dev/leopard-base]
+
+### CLI
+You can also create a project with the cli tool instructions found (here)[https://github.com/VOLIX-dev/leopard-cli]
