@@ -284,7 +284,7 @@ func (c *Context) SetResponseCookie(cookies ...*http.Cookie) {
 // Templates
 
 func (c *Context) RenderTemplate(template string, data map[string]drivers.Value) error {
-	return c.a.TemplateDriver.RenderTemplate(template, c.responseWriter, data)
+	return c.a.TemplateDriver.RenderTemplate(template, c.responseWriter, data, c.request)
 }
 
 // For middleware

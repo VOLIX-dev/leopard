@@ -2,10 +2,12 @@ package twigDriver
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/tyler-sommer/stick"
 	"github.com/volix-dev/leopard/templating/drivers"
 	"io"
+	"net/http"
 	path2 "path"
 	"reflect"
 )
@@ -20,12 +22,14 @@ func NewTwigDriver() *TwigDriver {
 	}
 }
 
-func (t *TwigDriver) RenderTemplate(template string, writer io.Writer, data map[string]drivers.Value) error {
+func (t *TwigDriver) RenderTemplate(template string, writer io.Writer, data map[string]drivers.Value, r *http.Request) error {
 	castedData := make(map[string]stick.Value)
 
 	for s, value := range data {
 		castedData[s] = stick.Value(value)
 	}
+
+	castedData["csrf"] = csrf.Token(r)
 
 	return t.env.Execute(template, writer, castedData)
 }

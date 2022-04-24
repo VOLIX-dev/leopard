@@ -11,6 +11,14 @@ import (
 
 type MiddlewareFunc func(context ContextInterface)
 
+func handleView(c *Context, view string) {
+	err := c.RenderTemplate(view, nil)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+}
+
 // GET handler register
 func (a *LeopardApp) GET(p string, h func(r ContextInterface), extras ...any) {
 	a.AddRoute(http.MethodGet, p, h, extras...)
@@ -34,6 +42,12 @@ func (a *LeopardApp) DELETE(p string, h func(r ContextInterface), extras ...any)
 // PATCH register a reoute with the method PATCH
 func (a *LeopardApp) PATCH(p string, h func(r ContextInterface), extras ...any) {
 	a.AddRoute(http.MethodPatch, p, h, extras)
+}
+
+func (a *LeopardApp) View(p string, view string, extras ...any) {
+	a.AddRoute(http.MethodGet, p, func(c ContextInterface) {
+		handleView(c.(*Context), view)
+	}, extras...)
 }
 
 func (a *LeopardApp) Group(p string, groupHandler func(group RouteGroup), extras ...any) RouteGroup {
@@ -142,7 +156,7 @@ type RouteGroup struct {
 }
 
 func (r RouteGroup) GET(p string, h func(r ContextInterface), extras ...any) {
-	r.addRoute(
+	r.AddRoute(
 		http.MethodGet,
 		p,
 		h,
@@ -152,7 +166,7 @@ func (r RouteGroup) GET(p string, h func(r ContextInterface), extras ...any) {
 
 // POST register a route with the method POST
 func (r RouteGroup) POST(p string, h func(r ContextInterface), extras ...any) {
-	r.addRoute(
+	r.AddRoute(
 		http.MethodPost,
 		p,
 		h,
@@ -162,7 +176,7 @@ func (r RouteGroup) POST(p string, h func(r ContextInterface), extras ...any) {
 
 // PUT register a route with the method PUT
 func (r RouteGroup) PUT(p string, h func(r ContextInterface), extras ...any) {
-	r.addRoute(
+	r.AddRoute(
 		http.MethodPut,
 		p,
 		h,
@@ -172,7 +186,7 @@ func (r RouteGroup) PUT(p string, h func(r ContextInterface), extras ...any) {
 
 // DELETE register a route with the method DELETE
 func (r RouteGroup) DELETE(p string, h func(r ContextInterface), extras ...any) {
-	r.addRoute(
+	r.AddRoute(
 		http.MethodDelete,
 		p,
 		h,
@@ -182,12 +196,18 @@ func (r RouteGroup) DELETE(p string, h func(r ContextInterface), extras ...any) 
 
 // PATCH register a route with the method PATCH
 func (r RouteGroup) PATCH(p string, h func(r ContextInterface), extras ...any) {
-	r.addRoute(
+	r.AddRoute(
 		http.MethodPatch,
 		p,
 		h,
 		extras...,
 	)
+}
+
+func (r RouteGroup) View(p string, view string, extras ...any) {
+	r.AddRoute(http.MethodGet, p, func(c ContextInterface) {
+		handleView(c.(*Context), view)
+	}, extras...)
 }
 
 // Group creates a new RouteGroup with a prefix
@@ -205,7 +225,7 @@ func (r RouteGroup) Group(prefix string, groupHandler func(group RouteGroup), ex
 	return group
 }
 
-func (r RouteGroup) addRoute(method string, p string, h func(r ContextInterface), extras ...any) {
+func (r RouteGroup) AddRoute(method string, p string, h func(r ContextInterface), extras ...any) {
 	name, middleware := parseExtras(extras)
 
 	r.app.addRoute(

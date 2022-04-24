@@ -2,6 +2,7 @@ package leopard
 
 import (
 	"errors"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	cacheDrivers "github.com/volix-dev/leopard/caching/drivers"
@@ -111,6 +112,9 @@ func New() (*LeopardApp, error) {
 // It will listen on the port specified in the options.
 // Should only be called once.
 func (a *LeopardApp) Serve() error {
+	CSRF := csrf.Protect([]byte(EnvSettingD("APP_KEY", "abcdefgijklfdsjaklfasfdasfdas").GetValue().(string)), csrf.Secure(false))
+	a.router.Use(CSRF)
+
 	a.server = NewSimpleServer(EnvSettingD("LISTEN", ":8080").GetValue().(string))
 	a.server.Handler = a.router
 	err := a.server.ListenAndServe()
